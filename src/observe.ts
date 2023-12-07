@@ -11,7 +11,7 @@ export function observer<O extends Record<PropertyKey, any>>(obj: O) {
 
   Object.keys(obj).forEach((property) => {
     observer(obj[property]); // 递归监听对象所有属性
-    defineRelative(obj, property, obj[property]);
+    defineReactive(obj, property, obj[property]);
   });
 }
 
@@ -21,7 +21,7 @@ export function observer<O extends Record<PropertyKey, any>>(obj: O) {
  * @param property - 被监听的属性
  * @param value - 被监听对象的属性的值
  */
-function defineRelative<O extends Record<PropertyKey, any>>(
+function defineReactive<O extends Record<PropertyKey, any>>(
   obj: O,
   property: keyof O,
   value: O[keyof O]
