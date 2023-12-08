@@ -11,11 +11,22 @@ export function getValueFromPath<Data extends Record<PropertyKey, any>>(
   if (!expression) return undefined;
 
   const args = expression.trim().split('.');
-
-  const value = args.reduce<any>((acc, cur) => {
+  const value = args.reduce<any>(function getValueNested(acc, cur) {
     acc = data[cur];
     return acc;
   }, undefined);
 
   return value;
+}
+
+/**
+ * 阻塞程序一段时间
+ * @param time 阻塞时间
+ */
+export function blocking(time: number = 5) {
+  const start = Date.now();
+
+  while (Date.now() - start < time) {
+    console.log(); // 防止被 tree shakers
+  }
 }
