@@ -1,11 +1,5 @@
 import { observer } from './observe';
-import { render } from './render';
+import { Comple } from './comple';
 
-declare global {
-  interface Window {
-    observer: typeof observer;
-    render: typeof render;
-  }
-}
 window.observer = observer;
-window.render = render;
+window.Comple = Comple;

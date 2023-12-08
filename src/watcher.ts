@@ -1,4 +1,5 @@
 import { Dep } from './dep';
+import { getValueFromPath } from './utils';
 
 /**
  * Watcher 类负责作为数据变化的观察者，当绑定的数据变化时执行回调函数更新视图。
@@ -9,7 +10,7 @@ import { Dep } from './dep';
  * @param callback 当观察的属性变化时，Watcher 将调用此函数进行更新
  */
 export class Watcher {
-  vm: Record<PropertyKey, any>; // 渲染视图的数据
+  vm: VM; // 渲染视图的数据
 
   expression: string; // vm 的属性
 
@@ -19,11 +20,7 @@ export class Watcher {
 
   callback: (value: any, oldVal: any) => any; // “更新操作” 触发的回调函数
 
-  constructor(
-    vm: Record<PropertyKey, any>,
-    exp: string,
-    callback: (value: any, oldVal: any) => void
-  ) {
+  constructor(vm: VM, exp: string, callback: (value: any, oldVal: any) => void) {
     this.vm = vm;
     this.expression = exp;
     this.callback = callback;
@@ -37,7 +34,7 @@ export class Watcher {
    */
   get() {
     Dep.target = this;
-    const value = this.vm[this.expression];
+    const value = getValueFromPath(this.vm.data, this.expression);
     Dep.target = null;
 
     return value;
@@ -51,7 +48,7 @@ export class Watcher {
     var oldVal = this.value;
     if (value !== oldVal) {
       this.value = value;
-      this.callback.call(this.vm, value, oldVal); // 执行Compile中绑定的回调，更新视图
+      this.callback.call(this.vm.data, value, oldVal); // 执行Compile中绑定的回调，更新视图
     }
   }
 

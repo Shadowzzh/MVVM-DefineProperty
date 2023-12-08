@@ -11,15 +11,25 @@
   </head>
 
   <body>
-    请输入:
-    <!-- <input id="input" autofocus /> -->
-    <div id="app"></div>
+    <div id="app">
+      <div>请输入:</div>
+      <input :value="inputValue" @input="onInput" />
+      <p>{{ inputValue }}</p>
+    </div>
   </body>
 
   <script>
-    const data = { inputValue: '' };
+    const vm = {
+      root: '#app',
+      data: { inputValue: '1' },
+      methods: {
+        onInput(e) {
+          this.inputValue = e.target.value;
+        }
+      }
+    };
 
-    observer(data);
-    render(data);
+    observer(vm.data);
+    new Comple(vm);
   </script>
 </html>
