@@ -12,6 +12,7 @@
 
   <body>
     <div id="app">
+      <!-- <h1>{{hello}}</h1> -->
       <div>请输入:</div>
       <input :value="inputValue" @input="onInput" />
       <p>{{ inputValue }}</p>
@@ -21,7 +22,10 @@
   <script>
     const vm = {
       root: '#app',
-      data: { inputValue: '1' },
+      data: {
+        inputValue: '1'
+        // hello: 'hello world'
+      },
       methods: {
         onInput(e) {
           this.inputValue = e.target.value;

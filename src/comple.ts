@@ -1,6 +1,5 @@
-import { getValueFromPath } from './utils';
+import { blocking, getValueFromPath } from './utils';
 import { Watcher } from './watcher';
-
 export class Comple {
   $el: Element;
   $fragment: DocumentFragment;
@@ -38,8 +37,9 @@ export class Comple {
   compile(fragment: DocumentFragment) {
     // 插入的值，如；{{ vm.value }}
     const insertionRegex = /\{\{(.+)\}\}/;
+    const self = this;
 
-    fragment.childNodes.forEach((node) => {
+    fragment.childNodes.forEach(function compileNodeByType(node) {
       const textContent = node.textContent ?? '';
 
       // 是否是 {{ }} 的表达式
@@ -47,21 +47,26 @@ export class Comple {
 
       if (expression) {
         // 纯文本节点
-        this.compileTextNode(node, expression);
+        self.compileTextNode(node, expression);
       } else if (Comple.isElementNode(node)) {
         // Element 节点
-        this.compileElementNode(node);
+        self.compileElementNode(node);
       }
     });
   }
 
+  /**
+   *
+   * @param node
+   */
   compileElementNode(node: Node) {
     const $vm = this.$vm;
+    const self = this;
 
     const attributes = (node as Element).attributes; // 只有 Element 类型的 Node 有 attributes
     const attrs: Attr[] = Array.prototype.slice.call(attributes); // 借用 slice 把类数组，转换成数组。
 
-    attrs.forEach((attribute) => {
+    attrs.forEach(function compleElementByAttrsType(attribute) {
       const keyword = {
         event: '@',
         value: ':'
@@ -69,16 +74,11 @@ export class Comple {
 
       const eventRegExp = new RegExp(`${keyword.event}(.+)`);
       const [_, eventName] = attribute.name.match(eventRegExp) ?? [];
-      console.log(eventName);
+      // console.log(eventName);
 
       if (eventName) {
         // 事件
-        console.log('event', attribute);
-        const fn = $vm.methods[attribute.value];
-
-        node.addEventListener(eventName, function onHandle(e) {
-          fn?.call($vm.data, e);
-        });
+        self.handleEvent(node, attribute, eventName);
       }
       if (new RegExp(`${keyword.value}`).test(attribute.name)) {
         // 值
@@ -93,9 +93,21 @@ export class Comple {
 
     node.textContent = getValueFromPath(this.$vm.data, exp); // 初始化视图
 
-    new Watcher(this.$vm, exp, (value) => {
+    new Watcher(this.$vm, exp, function updateTextNodeView(value) {
+      blocking();
       node.textContent = value;
     });
+  }
+
+  /** 事件处理 */
+  handleEvent(node: Node, attribute: Attr, eventName: string) {
+    const self = this;
+    const fn = this.$vm.methods[attribute.value];
+
+    node.addEventListener(eventName, function onHandleEvent(e) {
+      fn?.call(self.$vm.data, e);
+    });
+    blocking();
   }
 
   bind() {}

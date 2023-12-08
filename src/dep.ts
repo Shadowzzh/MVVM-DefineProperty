@@ -1,3 +1,4 @@
+import { blocking } from './utils';
 import type { Watcher } from './watcher';
 
 /**
@@ -11,6 +12,7 @@ export class Dep {
   id = 0; // 每个 Watcher 的唯一 id
 
   constructor() {
+    blocking();
     this.id = Dep.uid++;
   }
 
@@ -21,6 +23,8 @@ export class Dep {
 
   /** 订阅 Watcher */
   subscribe(watcher: Watcher) {
+    blocking();
+
     this.list.push(watcher);
   }
 

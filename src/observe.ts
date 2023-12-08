@@ -1,4 +1,10 @@
 import { Dep } from './dep';
+import { blocking } from './utils';
+
+function defineProperty(...args: Parameters<typeof Object.defineProperty>) {
+  blocking();
+  return Object.defineProperty(...args);
+}
 
 /**
  * 监听一个的对象
@@ -8,8 +14,7 @@ import { Dep } from './dep';
 export function observer<O extends Record<PropertyKey, any>>(obj: O) {
   // 非对象不进行监听
   if (Array.prototype.toString.call(obj) !== '[object Object]') return;
-
-  Object.keys(obj).forEach((property) => {
+  Object.keys(obj).forEach(function forEachDefineReactive(property) {
     observer(obj[property]); // 递归监听对象所有属性
     defineReactive(obj, property, obj[property]);
   });
@@ -29,7 +34,7 @@ function defineReactive<O extends Record<PropertyKey, any>>(
   /** 对每一个属性的 get/set 进行 订阅/发布  */
   const dep = new Dep();
 
-  Object.defineProperty(obj, property, {
+  defineProperty(obj, property, {
     configurable: false,
     enumerable: true,
 
