@@ -60,29 +60,39 @@ export class Comple {
    * @param node
    */
   compileElementNode(node: Node) {
-    const $vm = this.$vm;
     const self = this;
 
     const attributes = (node as Element).attributes; // 只有 Element 类型的 Node 有 attributes
     const attrs: Attr[] = Array.prototype.slice.call(attributes); // 借用 slice 把类数组，转换成数组。
 
-    attrs.forEach(function compleElementByAttrsType(attribute) {
-      const keyword = {
-        event: '@',
-        value: ':'
-      };
+    const keyword = {
+      event: '@',
+      value: ':',
+      model: 'v-model'
+    };
 
+    attrs.forEach(function compleElementByAttrsType(attribute) {
+      // 对事件进行处理 如 onInput
       const eventRegExp = new RegExp(`${keyword.event}(.+)`);
-      const [_, eventName] = attribute.name.match(eventRegExp) ?? [];
-      // console.log(eventName);
+      const [, eventName] = attribute.name.match(eventRegExp) ?? [];
 
       if (eventName) {
-        // 事件
-        self.handleEvent(node, attribute, eventName);
+        self.handleElementEvent(node, attribute, eventName);
       }
-      if (new RegExp(`${keyword.value}`).test(attribute.name)) {
-        // 值
-        console.log('value', attribute.value);
+
+      // 对 Element 属性进行处理
+      const bindingRegExp = new RegExp(`${keyword.value}(.+)`);
+      const [, binding] = attribute.name.match(bindingRegExp) ?? [];
+
+      if (binding) {
+        self.handleElementAttr(node, attribute, binding);
+      }
+
+      // 对 v-model 处理
+      const modelExp = new RegExp(`${keyword.model}`);
+
+      if (modelExp.test(attribute.name)) {
+        self.handleModel(node, attribute);
       }
     });
   }
@@ -99,18 +109,43 @@ export class Comple {
     });
   }
 
+  /** 处理 model */
+  handleModel(node: Node, attribute: Attr) {
+    const self = this;
+
+    node.addEventListener('input', function onHandleElementEvent(e) {
+      self.$vm.data[attribute.value] = (e.target as HTMLInputElement).value;
+    });
+
+    (node as any).value = this.$vm.data[attribute.value];
+
+    new Watcher(self.$vm, attribute.value, function updateElementModelView(value) {
+      blocking();
+      (node as any).value = value;
+    });
+  }
+
+  /** 处理元素的属性 */
+  handleElementAttr(node: Node, attribute: Attr, binding: string) {
+    (node as any)[binding] = getValueFromPath(this.$vm.data, attribute.value);
+
+    new Watcher(this.$vm, attribute.value, function updateElementAttrView(value) {
+      blocking();
+      (node as any)[binding] = value;
+    });
+  }
+
   /** 事件处理 */
-  handleEvent(node: Node, attribute: Attr, eventName: string) {
+  handleElementEvent(node: Node, attribute: Attr, eventName: string) {
     const self = this;
     const fn = this.$vm.methods[attribute.value];
 
-    node.addEventListener(eventName, function onHandleEvent(e) {
+    node.addEventListener(eventName, function onHandleElementEvent(e) {
       fn?.call(self.$vm.data, e);
     });
+
     blocking();
   }
-
-  bind() {}
 
   /** 判断一个 childNode 是否是文字节点 */
   static isTextNode(node: ChildNode) {
