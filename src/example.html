@@ -12,10 +12,12 @@
 
   <body>
     <div id="app">
-      <!-- <h1>{{hello}}</h1> -->
+      <h1>{{hello}}</h1>
       <div>请输入:</div>
-      <input :value="inputValue" @input="onInput" />
+      <input v-model="inputValue" />
       <p>{{ inputValue }}</p>
+
+      <input :value="hello" @input="onInput" />
     </div>
   </body>
 
@@ -23,17 +25,19 @@
     const vm = {
       root: '#app',
       data: {
-        inputValue: '1'
-        // hello: 'hello world'
+        inputValue: '1',
+        hello: 'hello world'
       },
       methods: {
         onInput(e) {
-          this.inputValue = e.target.value;
+          this.hello = e.target.value;
         }
       }
     };
 
     observer(vm.data);
     new Comple(vm);
+
+    window.app = vm;
   </script>
 </html>
