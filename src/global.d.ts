@@ -1,10 +1,10 @@
-import { Comple } from './src/comple';
-import { observer } from './src/observe';
+
+import { Mvvm } from '.';
+
 
 declare global {
   interface Window {
-    observer: typeof observer;
-    Comple: typeof Comple;
+    Mvvm: typeof Mvvm;
   }
 
   /** 空对象类型 */
